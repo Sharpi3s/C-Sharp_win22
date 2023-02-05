@@ -15,8 +15,12 @@ public class MenuService
 
         try
         {
-            var json = JsonConvert.DeserializeObject<List<Contact>>(file.Read(FilePath))!;
-            contacts.ContactList = json;
+            var json = JsonConvert.DeserializeObject<Dictionary<string, List<Contact>>>(file.Read(FilePath))!;
+            if (json != null)
+            {
+                contacts.ContactList = json["ContactList"];
+            }
+            
         }
         catch
         {
@@ -85,9 +89,9 @@ Welcome to your Address Book. What would you like to do?
         Console.Write("Enter city: ");
         contact.City = Console.ReadLine() ?? "";
 
-        contacts.ContactList.Add(contact);
+        contacts?.ContactList?.Add(contact);
 
-        file.Save(FilePath, JsonConvert.SerializeObject(new { contacts.ContactList }));
+        file.Save(FilePath, JsonConvert.SerializeObject(new { contacts?.ContactList }));
 
         Console.WriteLine("");
         Console.WriteLine("Press any key to return to the home page.");
@@ -98,69 +102,81 @@ Welcome to your Address Book. What would you like to do?
         Console.Clear();
         Console.WriteLine("Delete a contact");
         Console.WriteLine();
-        Console.Write("Enter the name of the contact you want to delete: ");
 
-        var name = Console.ReadLine();
-
-        var response = contacts.ContactList.Find(contact => contact.FirstName == name);
-
-        while (response == null)
+        if (contacts?.ContactList?.Count > 0)
         {
-            Console.Clear();
-            Console.Write("There is no contact with that name in you address book. \nPlease try again: ");
-            name = Console.ReadLine();
-            response = contacts.ContactList.Find(x => x.FirstName == name);
-        }
+            Console.Write("Enter the name of the contact you want to delete: ");
 
-        Console.Clear();
-        string prompt = "Are you sure you want to delete " + response.FirstName + " from your address book?";
-        string[] options = { "Yes", "No" };
-        ArrowMenuService contactsMenu = new ArrowMenuService(prompt, options);
-        int selectedIndex = contactsMenu.Run();
+            var name = Console.ReadLine();
 
-        switch (selectedIndex)
-        {
-            case 0:
+            var response = contacts?.ContactList?.Find(contact => contact.FirstName == name);
+
+            while (response == null)
+            {
                 Console.Clear();
-                contacts.ContactList.RemoveAll(contact => contact.FirstName! == name);
-                file.Save(FilePath, JsonConvert.SerializeObject(new { contacts }));
-                Console.WriteLine(response.FirstName + " has been deleted.");
-                Console.WriteLine("Press any key to return to the home page.");
-                Console.ReadKey();
-                break;
-            case 1:
-                WelcomeMenu();
-                break;
-        }
-        /*
-         Version på hur man kan hantera det med att användaren får svara med y eller n istället. 
-         Men valde att forstätta med pilmenyn eftersom huvudmenyn använder sig av det och det såg estiskt bättre ut.
-         */
+                Console.Write("There is no contact with that name in you address book. \nPlease try again: ");
+                name = Console.ReadLine();
+                response = contacts?.ContactList?.Find(x => x.FirstName == name);
+            }
 
-        //Console.Clear();
-        //Console.WriteLine("Are you sure you want to delete " + response.FirstName + " from your address book?");
-        //Console.Write("Enter y for yes if you're sure and n for no: ");
-        //var answer = Console.ReadLine();
-        //while (answer != "y" && answer != "n")
-        //{
-        //    Console.Clear();
-        //    Console.WriteLine("You can only enter y or n. Please try again.");
-        //    Console.Write("Enter y for yes if you're sure and n for no: ");
-        //    answer = Console.ReadLine();
-        //}
-        //if (answer == "y")
-        //{
-        //    Console.Clear();
-        //    contacts.RemoveAll(contact => contact.FirstName! == response.FirstName);
-        //    FileService.Save(FilePath, JsonConvert.SerializeObject(new { contacts }));
-        //    Console.WriteLine(response.FirstName + " has been deleted.");
-        //    Console.WriteLine("Press any key to return to the home page.");
-        //    Console.ReadKey();
-        //}
-        //else if (answer == "n")
-        //{
-        //    WelcomeMenu();
-        //}
+            Console.Clear();
+            string prompt = "Are you sure you want to delete " + response.FirstName + " from your address book?";
+            string[] options = { "Yes", "No" };
+            ArrowMenuService contactsMenu = new ArrowMenuService(prompt, options);
+            int selectedIndex = contactsMenu.Run();
+
+            switch (selectedIndex)
+            {
+                case 0:
+                    Console.Clear();
+                    contacts?.ContactList?.RemoveAll(contact => contact.FirstName! == name);
+                    file.Save(FilePath, JsonConvert.SerializeObject(new { contacts }));
+                    Console.WriteLine(response.FirstName + " has been deleted.");
+                    Console.WriteLine("Press any key to return to the home page.");
+                    Console.ReadKey();
+                    break;
+                case 1:
+                    WelcomeMenu();
+                    break;
+            }
+            /*
+             Version på hur man kan hantera det med att användaren får svara med y eller n istället. 
+             Men valde att forstätta med pilmenyn eftersom huvudmenyn använder sig av det och det såg estiskt bättre ut.
+             */
+
+            //Console.Clear();
+            //Console.WriteLine("Are you sure you want to delete " + response.FirstName + " from your address book?");
+            //Console.Write("Enter y for yes if you're sure and n for no: ");
+            //var answer = Console.ReadLine();
+            //while (answer != "y" && answer != "n")
+            //{
+            //    Console.Clear();
+            //    Console.WriteLine("You can only enter y or n. Please try again.");
+            //    Console.Write("Enter y for yes if you're sure and n for no: ");
+            //    answer = Console.ReadLine();
+            //}
+            //if (answer == "y")
+            //{
+            //    Console.Clear();
+            //    contacts.RemoveAll(contact => contact.FirstName! == response.FirstName);
+            //    FileService.Save(FilePath, JsonConvert.SerializeObject(new { contacts }));
+            //    Console.WriteLine(response.FirstName + " has been deleted.");
+            //    Console.WriteLine("Press any key to return to the home page.");
+            //    Console.ReadKey();
+            //}
+            //else if (answer == "n")
+            //{
+            //    WelcomeMenu();
+            //}
+
+        }
+        else
+        {
+            Console.WriteLine("No contacts can be deleted because your contact list is empty.");
+            Console.WriteLine("");
+            Console.WriteLine("Press any key to return to the home page.");
+            Console.ReadKey();
+        }
     }
 
     private void OptionThree()
@@ -174,14 +190,14 @@ Welcome to your Address Book. What would you like to do?
 
         if (name != null)
         {
-            var response = contacts.ContactList.Find(contact => contact.FirstName == name);
+            var response = contacts?.ContactList?.Find(contact => contact.FirstName == name);
 
             while (response == null)
             {
                 Console.Clear();   
                 Console.Write("There is no contact with that name in you address book. \nPlease try again: ");
                 name = Console.ReadLine();
-                response = contacts.ContactList.Find(x => x.FirstName == name);
+                response = contacts?.ContactList?.Find(x => x.FirstName == name);
             }
 
             Console.Clear();
@@ -203,7 +219,17 @@ Welcome to your Address Book. What would you like to do?
         Console.WriteLine("Show all contacts");
         Console.WriteLine();
 
-        contacts!.ContactList.ForEach(contact => Console.WriteLine("Name: " + contact.FirstName + " " + contact.LastName + "  " + "Email: " + contact.Email + "\n" ));
+        //contacts?.ContactList.ForEach(contact => Console.WriteLine("Name: " + contact.FirstName + " " + contact.LastName + "  " + "Email: " + contact.Email + "\n"));
+
+
+        if (contacts != null)
+        {
+            contacts!.ContactList.ForEach(contact => Console.WriteLine("Name: " + contact.FirstName + " " + contact.LastName + "  " + "Email: " + contact.Email + "\n"));
+        }
+        else
+        {
+            Console.WriteLine("Your contact list is empty.");
+        }
 
         Console.WriteLine("");
         Console.WriteLine("Press any key to return to the home page.");
